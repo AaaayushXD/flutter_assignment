@@ -7,6 +7,8 @@ import '../models/song_model.dart';
 import '../models/playlist_model.dart';
 import '../widgets/add_song_dialog.dart';
 import '../widgets/audio_player_widget.dart';
+import '../widgets/create_playlist_dialog.dart';
+import 'playlist_player_page.dart';
 
 class SongsPage extends StatefulWidget {
   const SongsPage({super.key});
@@ -112,56 +114,13 @@ class _SongsPageState extends State<SongsPage> with TickerProviderStateMixin {
   }
 
   void _showCreatePlaylistDialog() {
-    final playlistController = TextEditingController();
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Create New Playlist'),
-        content: TextField(
-          controller: playlistController,
-          decoration: const InputDecoration(
-            labelText: 'Playlist Name',
-            border: OutlineInputBorder(),
-          ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (playlistController.text.trim().isNotEmpty) {
-                try {
-                  await _playlistService.createPlaylist(
-                    playlistController.text.trim(),
-                  );
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Playlist "${playlistController.text.trim()}" created!',
-                      ),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                } catch (error) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error creating playlist: $error'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
-            },
-            child: const Text('Create'),
-          ),
-        ],
-      ),
-    );
+      builder: (context) => const CreatePlaylistDialog(),
+    ).then((_) {
+      // Refresh playlists after dialog closes
+      _loadPlaylists();
+    });
   }
 
   void _editSong(Song song) {
@@ -263,35 +222,13 @@ class _SongsPageState extends State<SongsPage> with TickerProviderStateMixin {
   }
 
   void _playPlaylist(Playlist playlist) async {
-    try {
-      final songs = await _playlistService.getPlaylistSongs(playlist.id);
-      if (songs.isNotEmpty) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => AudioPlayerWidget(
-              song: songs.first,
-              playlist: songs,
-              startIndex: 0,
-            ),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No songs in this playlist'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error loading playlist: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+    // Navigate to the vinyl playlist player
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PlaylistPlayerPage(playlist: playlist),
+      ),
+    );
   }
 
   @override
@@ -449,118 +386,113 @@ class _SongsPageState extends State<SongsPage> with TickerProviderStateMixin {
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            // Thumbnail
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                width: 80,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: song.thumbnailUrlGenerated.isNotEmpty
-                    ? Image.network(
-                        song.thumbnailUrlGenerated,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey[300],
-                            child: const Icon(
-                              Icons.music_note,
-                              color: Colors.grey,
-                              size: 30,
-                            ),
-                          );
-                        },
-                      )
-                    : Container(
-                        color: Colors.grey[300],
-                        child: const Icon(
-                          Icons.music_note,
-                          color: Colors.grey,
-                          size: 30,
+      child: InkWell(
+        onTap: () => _playSong(song),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // Thumbnail
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  width: 80,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: song.thumbnailUrlGenerated.isNotEmpty
+                      ? Image.network(
+                          song.thumbnailUrlGenerated,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: Colors.grey[300],
+                              child: const Icon(
+                                Icons.music_note,
+                                color: Colors.grey,
+                                size: 30,
+                              ),
+                            );
+                          },
+                        )
+                      : Container(
+                          color: Colors.grey[300],
+                          child: const Icon(
+                            Icons.music_note,
+                            color: Colors.grey,
+                            size: 30,
+                          ),
                         ),
-                      ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            // Song Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    song.title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Added by ${song.userName}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Added ${_formatDate(song.createdAt)}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-            ),
-            // Actions
-            Row(
-              children: [
-                IconButton(
-                  onPressed: () => _playSong(song),
-                  icon: const Icon(Icons.play_arrow, color: Colors.purple),
-                  tooltip: 'Play Song',
                 ),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    switch (value) {
-                      case 'edit':
-                        _editSong(song);
-                        break;
-                      case 'delete':
-                        _deleteSong(song);
-                        break;
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit, size: 16),
-                          SizedBox(width: 8),
-                          Text('Edit'),
-                        ],
+              ),
+              const SizedBox(width: 16),
+              // Song Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      song.title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, size: 16, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('Delete', style: TextStyle(color: Colors.red)),
-                        ],
-                      ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Added by ${song.userName}',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Added ${_formatDate(song.createdAt)}',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ],
+              ),
+              // Actions - Only the triple dot menu
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  switch (value) {
+                    case 'edit':
+                      _editSong(song);
+                      break;
+                    case 'delete':
+                      _deleteSong(song);
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit, size: 16),
+                        SizedBox(width: 8),
+                        Text('Edit'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete, size: 16, color: Colors.red),
+                        SizedBox(width: 8),
+                        Text('Delete', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -571,84 +503,114 @@ class _SongsPageState extends State<SongsPage> with TickerProviderStateMixin {
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            // Playlist Icon
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: Colors.purple.withOpacity(0.1),
+      child: InkWell(
+        onTap: () => _playPlaylist(playlist),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // Playlist Image/Icon
+              ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.playlist_play,
-                color: Colors.purple,
-                size: 30,
-              ),
-            ),
-            const SizedBox(width: 16),
-            // Playlist Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    playlist.name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                child: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.purple.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${playlist.songCount} songs',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Created ${_formatDate(playlist.createdAt)}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-            ),
-            // Actions
-            Row(
-              children: [
-                IconButton(
-                  onPressed: () => _playPlaylist(playlist),
-                  icon: const Icon(Icons.play_arrow, color: Colors.purple),
-                  tooltip: 'Play Playlist',
+                  child:
+                      playlist.imageUrl != null && playlist.imageUrl!.isNotEmpty
+                      ? Image.network(
+                          playlist.imageUrl!,
+                          fit: BoxFit.cover,
+                          width: 60,
+                          height: 60,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: Colors.purple.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.playlist_play,
+                                color: Colors.purple,
+                                size: 30,
+                              ),
+                            );
+                          },
+                        )
+                      : const Icon(
+                          Icons.playlist_play,
+                          color: Colors.purple,
+                          size: 30,
+                        ),
                 ),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    switch (value) {
-                      case 'delete':
-                        _deletePlaylist(playlist);
-                        break;
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, size: 16, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('Delete', style: TextStyle(color: Colors.red)),
-                        ],
+              ),
+              const SizedBox(width: 16),
+              // Playlist Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      playlist.name,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${playlist.songCount} songs',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Created ${_formatDate(playlist.createdAt)}',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ],
+              ),
+              // Actions
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () => _playPlaylist(playlist),
+                    icon: const Icon(Icons.play_arrow, color: Colors.purple),
+                    tooltip: 'Play Playlist',
+                  ),
+                  PopupMenuButton<String>(
+                    onSelected: (value) {
+                      switch (value) {
+                        case 'delete':
+                          _deletePlaylist(playlist);
+                          break;
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete, size: 16, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text('Delete', style: TextStyle(color: Colors.red)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

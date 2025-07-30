@@ -6,6 +6,7 @@ class Playlist {
   final DateTime createdAt;
   final DateTime updatedAt;
   final List<String> songIds; // References to song IDs
+  final String? imageUrl; // Optional playlist image URL
 
   Playlist({
     required this.id,
@@ -15,6 +16,7 @@ class Playlist {
     required this.createdAt,
     required this.updatedAt,
     required this.songIds,
+    this.imageUrl,
   });
 
   // JSON serialization
@@ -27,6 +29,7 @@ class Playlist {
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'songIds': songIds,
+      'imageUrl': imageUrl,
     };
   }
 
@@ -39,6 +42,7 @@ class Playlist {
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
       songIds: List<String>.from(json['songIds'] ?? []),
+      imageUrl: json['imageUrl'],
     );
   }
 
@@ -51,6 +55,7 @@ class Playlist {
     DateTime? createdAt,
     DateTime? updatedAt,
     List<String>? songIds,
+    String? imageUrl,
   }) {
     return Playlist(
       id: id ?? this.id,
@@ -60,6 +65,7 @@ class Playlist {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       songIds: songIds ?? this.songIds,
+      imageUrl: imageUrl ?? this.imageUrl,
     );
   }
 

@@ -28,7 +28,7 @@ class PlaylistService {
   User? get currentUser => _auth.currentUser;
 
   // Create a new playlist
-  Future<void> createPlaylist(String name) async {
+  Future<void> createPlaylist(String name, {String? imageUrl}) async {
     try {
       final user = currentUser;
       if (user == null) throw Exception('User not authenticated');
@@ -43,6 +43,7 @@ class PlaylistService {
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
         songIds: [],
+        imageUrl: imageUrl,
       );
 
       // Save to Firestore

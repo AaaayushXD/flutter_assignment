@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
-import '../widgets/mini_player_widget.dart';
 import 'weather_page.dart';
 import 'songs_page.dart';
 import 'utils_page.dart';
@@ -47,22 +46,12 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
                   : const Color(0xFFF5F5F5),
               body: Stack(
                 children: [
-                  // Main content
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      bottom: 160, // Space for mini player + bottom navigation
-                    ),
+                  // Main content with dynamic padding
+                  _DynamicContentPadding(
                     child: IndexedStack(
                       index: _currentIndex,
                       children: _screens,
                     ),
-                  ),
-                  // Mini player positioned above bottom navigation
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 80, // Position above bottom navigation
-                    child: const MiniPlayerWidget(),
                   ),
                 ],
               ),
@@ -148,6 +137,15 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _DynamicContentPadding({required Widget child}) {
+    return Padding(
+      padding: const EdgeInsets.only(
+        bottom: 20.0, // Space for bottom navigation only
+      ),
+      child: child,
     );
   }
 }
