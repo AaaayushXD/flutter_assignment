@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
-import 'main_navigation_page.dart';
 import 'auth/login_page.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -84,6 +83,110 @@ class _SplashScreenState extends State<SplashScreen>
     // Wait for animations to complete and navigate
     await Future.delayed(const Duration(milliseconds: 2000));
     _navigateToNextScreen();
+  }
+
+  Widget _buildVinylRecordIcon() {
+    return SizedBox(
+      width: 80,
+      height: 80,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Vinyl record base
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.black87,
+              border: Border.all(color: Colors.white24, width: 2),
+            ),
+          ),
+          // Record grooves
+          Container(
+            width: 70,
+            height: 70,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  Colors.transparent,
+                  Colors.white.withOpacity(0.1),
+                  Colors.transparent,
+                ],
+                stops: const [0.0, 0.5, 1.0],
+              ),
+            ),
+          ),
+          // Center label
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.grey[300],
+              border: Border.all(color: Colors.white, width: 1),
+            ),
+          ),
+          // Play button
+          SizedBox(
+            width: 12,
+            height: 12,
+            child: CustomPaint(painter: PlayButtonPainter()),
+          ),
+          // Tonearm
+          Positioned(
+            top: -5,
+            right: -5,
+            child: Transform.rotate(
+              angle: -0.3,
+              child: Container(
+                width: 25,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+                child: Container(
+                  margin: const EdgeInsets.only(left: 20),
+                  width: 5,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: Colors.orange,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Decorative dots
+          Positioned(
+            top: 15,
+            right: 15,
+            child: Container(
+              width: 4,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.orange,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 20,
+            left: 20,
+            child: Container(
+              width: 3,
+              height: 3,
+              decoration: BoxDecoration(
+                color: Colors.purple,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _navigateToNextScreen() {
@@ -225,14 +328,8 @@ class _SplashScreenState extends State<SplashScreen>
                                           );
                                         },
                                       ),
-                                      // Music note icon
-                                      Icon(
-                                        Icons.music_note,
-                                        size: 80,
-                                        color: isDarkMode
-                                            ? Colors.white
-                                            : Colors.white,
-                                      ),
+                                      // Custom vinyl record icon
+                                      _buildVinylRecordIcon(),
                                     ],
                                   ),
                                 ),
@@ -259,7 +356,7 @@ class _SplashScreenState extends State<SplashScreen>
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      'Music & Utilities',
+                                      'Music Player',
                                       style: TextStyle(
                                         fontSize: 32,
                                         fontWeight: FontWeight.bold,
@@ -350,4 +447,25 @@ class _SplashScreenState extends State<SplashScreen>
       },
     );
   }
+}
+
+class PlayButtonPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color =
+          const Color(0xFF20B2AA) // Teal color
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+    path.moveTo(0, 0);
+    path.lineTo(size.width, size.height / 2);
+    path.lineTo(0, size.height);
+    path.close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

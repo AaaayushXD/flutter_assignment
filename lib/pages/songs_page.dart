@@ -250,9 +250,7 @@ class _SongsPageState extends State<SongsPage> with TickerProviderStateMixin {
 
             return Scaffold(
               appBar: AppBar(
-                title: Text(
-                  'Welcome, ${authProvider.user?.displayName ?? authProvider.user?.email?.split('@')[0] ?? 'User'}!',
-                ),
+                title: Text('Music Player'),
                 backgroundColor: isDarkMode
                     ? const Color(0xFF16213E)
                     : Colors.purple,
