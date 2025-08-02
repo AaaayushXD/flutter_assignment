@@ -9,7 +9,7 @@ class GlobalThemeSwitcher extends StatefulWidget {
     super.key,
     required this.isDarkMode,
     required this.onThemeChanged,
-    this.size = 50,
+    this.size = 36,
   });
 
   @override
@@ -113,31 +113,31 @@ class _GlobalThemeSwitcherState extends State<GlobalThemeSwitcher>
                     end: Alignment.bottomRight,
                     colors: widget.isDarkMode
                         ? [
-                            Colors.orange.withOpacity(0.4),
-                            Colors.deepOrange.withOpacity(0.3),
-                            Colors.orange.withOpacity(0.2),
+                            Colors.orange.withOpacity(0.6),
+                            Colors.deepOrange.withOpacity(0.4),
+                            Colors.orange.withOpacity(0.3),
                           ]
                         : [
+                            Colors.blue.withOpacity(0.6),
                             Colors.indigo.withOpacity(0.4),
                             Colors.blue.withOpacity(0.3),
-                            Colors.indigo.withOpacity(0.2),
                           ],
                   ),
                   borderRadius: BorderRadius.circular(widget.size / 2),
                   boxShadow: [
                     BoxShadow(
                       color: widget.isDarkMode
-                          ? Colors.orange.withOpacity(0.5)
-                          : Colors.indigo.withOpacity(0.5),
-                      blurRadius: 12 * _pulseAnimation.value,
+                          ? Colors.orange.withOpacity(0.6)
+                          : Colors.blue.withOpacity(0.6),
+                      blurRadius: 8 * _pulseAnimation.value,
                       spreadRadius: 1 * _pulseAnimation.value,
-                      offset: const Offset(0, 3),
+                      offset: const Offset(0, 2),
                     ),
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 6,
                       spreadRadius: 0,
-                      offset: const Offset(0, 2),
+                      offset: const Offset(0, 1),
                     ),
                   ],
                 ),
@@ -146,13 +146,13 @@ class _GlobalThemeSwitcherState extends State<GlobalThemeSwitcher>
                   curve: Curves.easeInOut,
                   decoration: BoxDecoration(
                     color: widget.isDarkMode
-                        ? Colors.orange.withOpacity(0.15)
-                        : Colors.indigo.withOpacity(0.15),
+                        ? Colors.orange.withOpacity(0.2)
+                        : Colors.blue.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(widget.size / 2),
                     border: Border.all(
                       color: widget.isDarkMode
-                          ? Colors.orange.withOpacity(0.4)
-                          : Colors.indigo.withOpacity(0.4),
+                          ? Colors.orange.withOpacity(0.6)
+                          : Colors.blue.withOpacity(0.6),
                       width: 1.5,
                     ),
                   ),
@@ -169,12 +169,10 @@ class _GlobalThemeSwitcherState extends State<GlobalThemeSwitcher>
                           );
                         },
                     child: Icon(
-                      widget.isDarkMode
-                          ? Icons.wb_sunny
-                          : Icons.nightlight_round,
+                      widget.isDarkMode ? Icons.light_mode : Icons.dark_mode,
                       key: ValueKey(widget.isDarkMode),
-                      color: widget.isDarkMode ? Colors.orange : Colors.indigo,
-                      size: widget.size * 0.45,
+                      color: widget.isDarkMode ? Colors.orange : Colors.blue,
+                      size: widget.size * 0.5,
                     ),
                   ),
                 ),

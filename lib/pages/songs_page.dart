@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/theme_provider.dart';
 import '../services/song_service.dart';
 import '../services/playlist_service.dart';
 import '../models/song_model.dart';
@@ -8,6 +9,7 @@ import '../models/playlist_model.dart';
 import '../widgets/add_song_dialog.dart';
 import '../widgets/audio_player_widget.dart';
 import '../widgets/create_playlist_dialog.dart';
+import '../widgets/global_theme_switcher.dart';
 import 'playlist_player_page.dart';
 
 class SongsPage extends StatefulWidget {
@@ -242,41 +244,58 @@ class _SongsPageState extends State<SongsPage> with TickerProviderStateMixin {
           // The StreamBuilder widgets will handle the data loading
         }
 
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(
-              'Welcome, ${authProvider.user?.displayName ?? authProvider.user?.email?.split('@')[0] ?? 'User'}!',
-            ),
-            backgroundColor: Colors.purple,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            actions: [
-              IconButton(
-                onPressed: () async {
-                  await authProvider.signOut();
-                },
-                icon: const Icon(Icons.logout),
-                tooltip: 'Logout',
-              ),
-            ],
-          ),
-          body: Column(
-            children: [
-              _buildTabBar(),
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [_buildSongsTab(), _buildPlaylistsTab()],
+        return Consumer<ThemeProvider>(
+          builder: (context, themeProvider, child) {
+            final isDarkMode = themeProvider.isDarkMode;
+
+            return Scaffold(
+              appBar: AppBar(
+                title: Text(
+                  'Welcome, ${authProvider.user?.displayName ?? authProvider.user?.email?.split('@')[0] ?? 'User'}!',
                 ),
+                backgroundColor: isDarkMode
+                    ? const Color(0xFF16213E)
+                    : Colors.purple,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                actions: [
+                  GlobalThemeSwitcher(
+                    isDarkMode: isDarkMode,
+                    onThemeChanged: () {
+                      themeProvider.toggleTheme();
+                    },
+                    size: 32,
+                  ),
+                  IconButton(
+                    onPressed: () async {
+                      await authProvider.signOut();
+                    },
+                    icon: const Icon(Icons.logout),
+                    tooltip: 'Logout',
+                  ),
+                ],
               ),
-            ],
-          ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: _showAddSongDialog,
-            backgroundColor: Colors.purple,
-            foregroundColor: Colors.white,
-            child: const Icon(Icons.add),
-          ),
+              body: Column(
+                children: [
+                  _buildTabBar(),
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [_buildSongsTab(), _buildPlaylistsTab()],
+                    ),
+                  ),
+                ],
+              ),
+              floatingActionButton: FloatingActionButton(
+                onPressed: _showAddSongDialog,
+                backgroundColor: isDarkMode
+                    ? const Color(0xFF16213E)
+                    : Colors.purple,
+                foregroundColor: Colors.white,
+                child: const Icon(Icons.add),
+              ),
+            );
+          },
         );
       },
     );
@@ -581,11 +600,6 @@ class _SongsPageState extends State<SongsPage> with TickerProviderStateMixin {
               // Actions
               Row(
                 children: [
-                  IconButton(
-                    onPressed: () => _playPlaylist(playlist),
-                    icon: const Icon(Icons.play_arrow, color: Colors.purple),
-                    tooltip: 'Play Playlist',
-                  ),
                   PopupMenuButton<String>(
                     onSelected: (value) {
                       switch (value) {

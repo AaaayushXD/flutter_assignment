@@ -2,6 +2,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:audio_session/audio_session.dart';
 import '../models/song_model.dart';
 import 'youtube_audio_service.dart';
+import 'cached_audio_service.dart';
 
 class AudioPlayerService {
   static final AudioPlayerService _instance = AudioPlayerService._internal();
@@ -9,6 +10,7 @@ class AudioPlayerService {
   AudioPlayerService._internal();
 
   final AudioPlayer _audioPlayer = AudioPlayer();
+  final CachedAudioService _cachedAudioService = CachedAudioService();
   List<Song> _currentPlaylist = [];
   int _currentIndex = 0;
   bool _isInitialized = false;
@@ -146,25 +148,11 @@ class AudioPlayerService {
 
       String audioUrl;
 
-      // Check if it's a YouTube URL
+      // Use progressive streaming: start playing immediately + background download
       if (song.youtubeUrl.contains('youtube.com') ||
           song.youtubeUrl.contains('youtu.be')) {
-        // Convert YouTube URL to audio URL using youtube_explode_dart
-        final youtubeService = YouTubeAudioService();
-        String? convertedUrl = await youtubeService.convertToAudioUrl(
-          song.youtubeUrl,
-        );
-
-        if (convertedUrl == null) {
-          throw Exception(
-            'Failed to extract audio from YouTube video. '
-            'The video might be private, restricted, or unavailable. '
-            'Song: ${song.title}',
-          );
-        }
-
-        audioUrl = convertedUrl;
-        print('Successfully extracted audio URL from YouTube: $audioUrl');
+        audioUrl = await _cachedAudioService
+            .getStreamingUrlWithBackgroundDownload(song);
       } else {
         // Assume it's already an audio URL
         audioUrl = song.youtubeUrl;
@@ -174,7 +162,7 @@ class AudioPlayerService {
       _currentPlaylist = [song];
       _currentIndex = 0;
 
-      print('Loaded song: ${song.title}');
+      print('Loaded song with progressive streaming: ${song.title}');
     } catch (e) {
       print('Error loading song: $e');
       rethrow;
@@ -214,10 +202,27 @@ class AudioPlayerService {
       // Load the first song using playlist method
       await _loadCurrentSongInPlaylist();
 
+      // Start preloading the rest of the playlist in background
+      _preloadPlaylistInBackground(songs);
+
       print('Loaded playlist with ${songs.length} songs');
     } catch (e) {
       print('Error loading playlist: $e');
       rethrow;
+    }
+  }
+
+  // Preload playlist in background for faster playback
+  Future<void> _preloadPlaylistInBackground(List<Song> songs) async {
+    try {
+      // Skip the first song since it's already loaded
+      final songsToPreload = songs.skip(1).toList();
+      if (songsToPreload.isNotEmpty) {
+        print('Starting background preload for ${songsToPreload.length} songs');
+        _cachedAudioService.preloadPlaylist(songsToPreload);
+      }
+    } catch (e) {
+      print('Error preloading playlist: $e');
     }
   }
 
@@ -306,25 +311,11 @@ class AudioPlayerService {
     final song = _currentPlaylist[_currentIndex];
     String audioUrl;
 
-    // Check if it's a YouTube URL
+    // Use progressive streaming for playlist songs too
     if (song.youtubeUrl.contains('youtube.com') ||
         song.youtubeUrl.contains('youtu.be')) {
-      // Convert YouTube URL to audio URL using youtube_explode_dart
-      final youtubeService = YouTubeAudioService();
-      String? convertedUrl = await youtubeService.convertToAudioUrl(
-        song.youtubeUrl,
-      );
-
-      if (convertedUrl == null) {
-        throw Exception(
-          'Failed to extract audio from YouTube video. '
-          'The video might be private, restricted, or unavailable. '
-          'Song: ${song.title}',
-        );
-      }
-
-      audioUrl = convertedUrl;
-      print('Successfully extracted audio URL from YouTube: $audioUrl');
+      audioUrl = await _cachedAudioService
+          .getStreamingUrlWithBackgroundDownload(song);
     } else {
       // Assume it's already an audio URL
       audioUrl = song.youtubeUrl;
@@ -332,7 +323,7 @@ class AudioPlayerService {
 
     await _audioPlayer.setUrl(audioUrl);
     _autoProgressTriggered = false; // Reset flag for new song
-    print('Loaded song in playlist: ${song.title}');
+    print('Loaded song in playlist with progressive streaming: ${song.title}');
   }
 
   // Auto-progress to next song when current song completes
@@ -418,6 +409,23 @@ class AudioPlayerService {
     return _currentPlaylist.isNotEmpty &&
         _currentIndex < _currentPlaylist.length &&
         _currentPlaylist[_currentIndex].id == song.id;
+  }
+
+  // Cache management methods
+  Future<void> clearCache() async {
+    await _cachedAudioService.clearCache();
+  }
+
+  Future<int> getCacheSize() async {
+    return await _cachedAudioService.getCacheSize();
+  }
+
+  Future<bool> isSongCached(Song song) async {
+    return await _cachedAudioService.isSongCached(song);
+  }
+
+  Future<String> getCacheInfo() async {
+    return await _cachedAudioService.getCacheInfo();
   }
 
   // Dispose resources

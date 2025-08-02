@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/global_theme_switcher.dart';
 import 'dart:async';
@@ -28,15 +29,39 @@ class _TimerPageState extends State<TimerPage> {
   ]; // 5, 10, 15, 30, 45, 60 minutes
 
   @override
+  void initState() {
+    super.initState();
+    _loadTimerState();
+  }
+
+  @override
   void dispose() {
     _timer?.cancel();
+    _saveTimerState();
     super.dispose();
   }
 
+  _loadTimerState() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _totalSeconds = prefs.getInt('timer_total') ?? 0;
+      _remainingSeconds = prefs.getInt('timer_remaining') ?? 0;
+      // If there's remaining time but timer was running, reset it
+      if (_remainingSeconds > 0 && _remainingSeconds < _totalSeconds) {
+        _remainingSeconds = _totalSeconds;
+      }
+    });
+  }
+
+  _saveTimerState() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setInt('timer_total', _totalSeconds);
+    prefs.setInt('timer_remaining', _remainingSeconds);
+  }
+
   void _startTimer() {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.isDarkMode;
-    if (_remainingSeconds > 0) {
+    // Only start if there's remaining time and timer isn't already running
+    if (_remainingSeconds > 0 && !_isRunning) {
       setState(() {
         _isRunning = true;
         _isPaused = false;
@@ -46,9 +71,10 @@ class _TimerPageState extends State<TimerPage> {
         setState(() {
           if (_remainingSeconds > 0) {
             _remainingSeconds--;
+            _saveTimerState(); // Save state every second
           } else {
             _stopTimer();
-            _showTimerCompleteDialog(isDarkMode);
+            _showTimerCompleteDialog();
           }
         });
       });
@@ -56,14 +82,18 @@ class _TimerPageState extends State<TimerPage> {
   }
 
   void _pauseTimer() {
-    setState(() {
-      _isPaused = true;
-      _timer?.cancel();
-    });
+    if (_isRunning) {
+      setState(() {
+        _isPaused = true;
+        _isRunning = false;
+        _timer?.cancel();
+      });
+      _saveTimerState();
+    }
   }
 
   void _resumeTimer() {
-    if (_isPaused) {
+    if (_isPaused && _remainingSeconds > 0) {
       _startTimer();
     }
   }
@@ -74,6 +104,7 @@ class _TimerPageState extends State<TimerPage> {
       _isPaused = false;
       _timer?.cancel();
     });
+    _saveTimerState();
   }
 
   void _resetTimer() {
@@ -83,6 +114,7 @@ class _TimerPageState extends State<TimerPage> {
       _remainingSeconds = _totalSeconds;
       _timer?.cancel();
     });
+    _saveTimerState();
   }
 
   void _setPresetTime(int seconds) {
@@ -92,6 +124,13 @@ class _TimerPageState extends State<TimerPage> {
       _isRunning = false;
       _isPaused = false;
       _timer?.cancel();
+    });
+    _saveTimerState();
+    // Auto-start timer when preset is selected
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        _startTimer();
+      }
     });
   }
 
@@ -192,7 +231,10 @@ class _TimerPageState extends State<TimerPage> {
     );
   }
 
-  void _showTimerCompleteDialog(bool isDarkMode) {
+  void _showTimerCompleteDialog() {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final isDarkMode = themeProvider.isDarkMode;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -211,10 +253,7 @@ class _TimerPageState extends State<TimerPage> {
               Navigator.pop(context);
               _resetTimer();
             },
-            child: Text(
-              'OK',
-              style: TextStyle(color: isDarkMode ? Colors.blue : Colors.blue),
-            ),
+            child: const Text('OK', style: TextStyle(color: Colors.blue)),
           ),
         ],
       ),
@@ -417,27 +456,6 @@ class _TimerPageState extends State<TimerPage> {
                 : (_isPaused ? _resumeTimer : _startTimer),
             color: Colors.white,
             iconSize: 40,
-          ),
-        ),
-
-        // Stop Button
-        Container(
-          decoration: BoxDecoration(
-            color: isDarkMode ? Colors.white.withOpacity(0.1) : Colors.white,
-            borderRadius: BorderRadius.circular(25),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.stop),
-            onPressed: _stopTimer,
-            color: Colors.red,
-            iconSize: 30,
           ),
         ),
       ],

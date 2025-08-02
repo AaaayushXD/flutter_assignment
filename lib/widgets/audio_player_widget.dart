@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import '../models/song_model.dart';
 import '../services/audio_player_service.dart';
+import '../providers/theme_provider.dart';
+import 'global_theme_switcher.dart';
 
 class AudioPlayerWidget extends StatefulWidget {
   final Song song;
@@ -313,480 +316,524 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget>
 
   @override
   Widget build(BuildContext context) {
-    if (!_animationsInitialized) {
-      return Scaffold(
-        backgroundColor: const Color(0xFF1a1a1a),
-        appBar: AppBar(
-          title: Text(
-            _audioService.currentSong?.title ?? widget.song.title,
-            style: const TextStyle(color: Colors.white),
-          ),
-          backgroundColor: const Color(0xFF2d2d2d),
-          foregroundColor: Colors.white,
-          elevation: 0,
-          actions: [
-            IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.close),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        final isDarkMode = themeProvider.isDarkMode;
+
+        if (!_animationsInitialized) {
+          return Scaffold(
+            backgroundColor: isDarkMode
+                ? const Color(0xFF1a1a1a)
+                : const Color(0xFFF5F5F5),
+            appBar: AppBar(
+              title: Text(
+                _audioService.currentSong?.title ?? widget.song.title,
+                style: const TextStyle(color: Colors.white),
+              ),
+              backgroundColor: isDarkMode
+                  ? const Color(0xFF2d2d2d)
+                  : Colors.purple,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              actions: [
+                GlobalThemeSwitcher(
+                  isDarkMode: isDarkMode,
+                  onThemeChanged: () {
+                    themeProvider.toggleTheme();
+                  },
+                  size: 32,
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
             ),
-          ],
-        ),
-        body: const Center(
-          child: CircularProgressIndicator(color: Colors.amber),
-        ),
-      );
-    }
+            body: const Center(
+              child: CircularProgressIndicator(color: Colors.amber),
+            ),
+          );
+        }
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF1a1a1a),
-      appBar: AppBar(
-        title: Text(
-          _audioService.currentSong?.title ?? widget.song.title,
-          style: const TextStyle(color: Colors.white),
-        ),
-        backgroundColor: const Color(0xFF2d2d2d),
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.close),
+        return Scaffold(
+          backgroundColor: isDarkMode
+              ? const Color(0xFF1a1a1a)
+              : const Color(0xFFF5F5F5),
+          appBar: AppBar(
+            title: Text(
+              _audioService.currentSong?.title ?? widget.song.title,
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: isDarkMode
+                ? const Color(0xFF2d2d2d)
+                : Colors.purple,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            actions: [
+              GlobalThemeSwitcher(
+                isDarkMode: isDarkMode,
+                onThemeChanged: () {
+                  themeProvider.toggleTheme();
+                },
+                size: 32,
+              ),
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close),
+              ),
+            ],
           ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.amber))
-          : Stack(
-              children: [
-                // Main content
-                Column(
+          body: _isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(color: Colors.amber),
+                )
+              : Stack(
                   children: [
-                    // Vinyl Player Section
-                    Expanded(
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // Vinyl Player Base
-                            // Vinyl Player with Progress Ring
-                            StreamBuilder<Duration>(
-                              stream: _audioService.player.positionStream,
-                              builder: (context, positionSnapshot) {
-                                return StreamBuilder<Duration?>(
-                                  stream: _audioService.player.durationStream,
-                                  builder: (context, durationSnapshot) {
-                                    return StreamBuilder<bool>(
-                                      stream: _audioService
-                                          .player
-                                          .playerStateStream
-                                          .map((state) => state.playing),
-                                      builder: (context, playingSnapshot) {
-                                        final position =
-                                            positionSnapshot.data ??
-                                            Duration.zero;
-                                        final duration =
-                                            durationSnapshot.data ??
-                                            Duration.zero;
-                                        final progress =
-                                            duration.inMilliseconds > 0
-                                            ? position.inMilliseconds /
-                                                  duration.inMilliseconds
-                                            : 0.0;
-                                        final isPlaying =
-                                            playingSnapshot.data ?? false;
+                    // Main content
+                    Column(
+                      children: [
+                        // Vinyl Player Section
+                        Expanded(
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                // Vinyl Player Base
+                                // Vinyl Player with Progress Ring
+                                StreamBuilder<Duration>(
+                                  stream: _audioService.player.positionStream,
+                                  builder: (context, positionSnapshot) {
+                                    return StreamBuilder<Duration?>(
+                                      stream:
+                                          _audioService.player.durationStream,
+                                      builder: (context, durationSnapshot) {
+                                        return StreamBuilder<bool>(
+                                          stream: _audioService
+                                              .player
+                                              .playerStateStream
+                                              .map((state) => state.playing),
+                                          builder: (context, playingSnapshot) {
+                                            final position =
+                                                positionSnapshot.data ??
+                                                Duration.zero;
+                                            final duration =
+                                                durationSnapshot.data ??
+                                                Duration.zero;
+                                            final progress =
+                                                duration.inMilliseconds > 0
+                                                ? position.inMilliseconds /
+                                                      duration.inMilliseconds
+                                                : 0.0;
+                                            final isPlaying =
+                                                playingSnapshot.data ?? false;
 
-                                        return Container(
-                                          width: 420,
-                                          height: 420,
-                                          child: Stack(
-                                            alignment: Alignment.center,
-                                            children: [
-                                              // Progress ring around vinyl
-                                              SizedBox(
-                                                width: 420,
-                                                height: 420,
-                                                child: CircularProgressIndicator(
-                                                  value: progress,
-                                                  strokeWidth: 10,
-                                                  backgroundColor: Colors.grey
-                                                      .withOpacity(0.2),
-                                                  valueColor:
-                                                      AlwaysStoppedAnimation<
-                                                        Color
-                                                      >(
-                                                        isPlaying
-                                                            ? Colors.amber
-                                                            : Colors.grey
-                                                                  .withOpacity(
-                                                                    0.4,
-                                                                  ),
-                                                      ),
-                                                ),
-                                              ),
-                                              // Vinyl base
-                                              Container(
-                                                width: 400,
-                                                height: 400,
-                                                decoration: BoxDecoration(
-                                                  color: const Color(
-                                                    0xFF3a3a3a,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                        200,
-                                                      ),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.black
-                                                          .withOpacity(0.5),
-                                                      blurRadius: 20,
-                                                      offset: const Offset(
-                                                        0,
-                                                        10,
-                                                      ),
+                                            return SizedBox(
+                                              width: 420,
+                                              height: 420,
+                                              child: Stack(
+                                                alignment: Alignment.center,
+                                                children: [
+                                                  // Progress ring around vinyl
+                                                  SizedBox(
+                                                    width: 420,
+                                                    height: 420,
+                                                    child: CircularProgressIndicator(
+                                                      value: progress,
+                                                      strokeWidth: 10,
+                                                      backgroundColor: Colors
+                                                          .grey
+                                                          .withOpacity(0.2),
+                                                      valueColor:
+                                                          AlwaysStoppedAnimation<
+                                                            Color
+                                                          >(
+                                                            isPlaying
+                                                                ? Colors.amber
+                                                                : Colors.grey
+                                                                      .withOpacity(
+                                                                        0.4,
+                                                                      ),
+                                                          ),
                                                     ),
-                                                  ],
-                                                ),
-                                                child: Stack(
-                                                  alignment: Alignment.center,
-                                                  children: [
-                                                    // Vinyl Disc
-                                                    if (_vinylRotation != null)
-                                                      AnimatedBuilder(
-                                                        animation:
-                                                            _vinylRotation!,
-                                                        builder: (context, child) {
-                                                          return Transform.rotate(
-                                                            angle:
-                                                                _needleDropped
-                                                                ? _vinylRotation!
-                                                                      .value
-                                                                : 0,
-                                                            child: Container(
-                                                              width: 360,
-                                                              height: 360,
-                                                              decoration: BoxDecoration(
-                                                                shape: BoxShape
-                                                                    .circle,
-                                                                color:
-                                                                    const Color(
+                                                  ),
+                                                  // Vinyl base
+                                                  Container(
+                                                    width: 400,
+                                                    height: 400,
+                                                    decoration: BoxDecoration(
+                                                      color: const Color(
+                                                        0xFF3a3a3a,
+                                                      ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            200,
+                                                          ),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Colors.black
+                                                              .withOpacity(0.5),
+                                                          blurRadius: 20,
+                                                          offset: const Offset(
+                                                            0,
+                                                            10,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    child: Stack(
+                                                      alignment:
+                                                          Alignment.center,
+                                                      children: [
+                                                        // Vinyl Disc
+                                                        if (_vinylRotation !=
+                                                            null)
+                                                          AnimatedBuilder(
+                                                            animation:
+                                                                _vinylRotation!,
+                                                            builder: (context, child) {
+                                                              return Transform.rotate(
+                                                                angle:
+                                                                    _needleDropped
+                                                                    ? _vinylRotation!
+                                                                          .value
+                                                                    : 0,
+                                                                child: Container(
+                                                                  width: 360,
+                                                                  height: 360,
+                                                                  decoration: BoxDecoration(
+                                                                    shape: BoxShape
+                                                                        .circle,
+                                                                    color: const Color(
                                                                       0xFF1a1a1a,
                                                                     ),
-                                                                border: Border.all(
-                                                                  color: const Color(
-                                                                    0xFF4a4a4a,
-                                                                  ),
-                                                                  width: 2,
-                                                                ),
-                                                                boxShadow: [
-                                                                  BoxShadow(
-                                                                    color: Colors
-                                                                        .black
-                                                                        .withOpacity(
-                                                                          0.3,
-                                                                        ),
-                                                                    blurRadius:
-                                                                        10,
-                                                                    offset:
-                                                                        const Offset(
-                                                                          0,
-                                                                          5,
-                                                                        ),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                              child: Stack(
-                                                                alignment:
-                                                                    Alignment
-                                                                        .center,
-                                                                children: [
-                                                                  // Vinyl grooves
-                                                                  ...List.generate(10, (
-                                                                    index,
-                                                                  ) {
-                                                                    return Container(
-                                                                      width:
-                                                                          360 -
-                                                                          (index *
-                                                                              18),
-                                                                      height:
-                                                                          360 -
-                                                                          (index *
-                                                                              18),
-                                                                      decoration: BoxDecoration(
-                                                                        shape: BoxShape
-                                                                            .circle,
-                                                                        border: Border.all(
-                                                                          color: const Color(
-                                                                            0xFF2a2a2a,
-                                                                          ),
-                                                                          width:
-                                                                              1,
-                                                                        ),
+                                                                    border: Border.all(
+                                                                      color: const Color(
+                                                                        0xFF4a4a4a,
                                                                       ),
-                                                                    );
-                                                                  }),
-                                                                  // Center label with thumbnail
-                                                                  Container(
-                                                                    width: 150,
-                                                                    height: 150,
-                                                                    decoration: BoxDecoration(
-                                                                      shape: BoxShape
-                                                                          .circle,
-                                                                      color: Colors
-                                                                          .white,
-                                                                      border: Border.all(
-                                                                        color: const Color(
-                                                                          0xFF4a4a4a,
-                                                                        ),
-                                                                        width:
-                                                                            3,
-                                                                      ),
+                                                                      width: 2,
                                                                     ),
-                                                                    child: ClipOval(
-                                                                      child:
-                                                                          _audioService.currentSong?.thumbnailUrlGenerated.isNotEmpty ==
-                                                                              true
-                                                                          ? Image.network(
-                                                                              _audioService.currentSong!.thumbnailUrlGenerated,
-                                                                              fit: BoxFit.cover,
-                                                                              errorBuilder:
-                                                                                  (
-                                                                                    context,
-                                                                                    error,
-                                                                                    stackTrace,
-                                                                                  ) {
-                                                                                    return Container(
-                                                                                      color: Colors.grey[300],
-                                                                                      child: const Icon(
-                                                                                        Icons.music_note,
-                                                                                        size: 50,
-                                                                                        color: Colors.grey,
-                                                                                      ),
-                                                                                    );
-                                                                                  },
-                                                                            )
-                                                                          : Container(
-                                                                              color: Colors.grey[300],
-                                                                              child: const Icon(
-                                                                                Icons.music_note,
-                                                                                size: 50,
-                                                                                color: Colors.grey,
-                                                                              ),
+                                                                    boxShadow: [
+                                                                      BoxShadow(
+                                                                        color: Colors
+                                                                            .black
+                                                                            .withOpacity(
+                                                                              0.3,
                                                                             ),
-                                                                    ),
-                                                                  ),
-                                                                  // Center hole
-                                                                  Container(
-                                                                    width: 25,
-                                                                    height: 25,
-                                                                    decoration: const BoxDecoration(
-                                                                      shape: BoxShape
-                                                                          .circle,
-                                                                      color: Color(
-                                                                        0xFF1a1a1a,
+                                                                        blurRadius:
+                                                                            10,
+                                                                        offset:
+                                                                            const Offset(
+                                                                              0,
+                                                                              5,
+                                                                            ),
                                                                       ),
-                                                                    ),
+                                                                    ],
                                                                   ),
-                                                                ],
-                                                              ),
-                                                            ),
-                                                          );
-                                                        },
-                                                      ),
-                                                  ],
-                                                ),
+                                                                  child: Stack(
+                                                                    alignment:
+                                                                        Alignment
+                                                                            .center,
+                                                                    children: [
+                                                                      // Vinyl grooves
+                                                                      ...List.generate(10, (
+                                                                        index,
+                                                                      ) {
+                                                                        return Container(
+                                                                          width:
+                                                                              360 -
+                                                                              (index *
+                                                                                  18),
+                                                                          height:
+                                                                              360 -
+                                                                              (index *
+                                                                                  18),
+                                                                          decoration: BoxDecoration(
+                                                                            shape:
+                                                                                BoxShape.circle,
+                                                                            border: Border.all(
+                                                                              color: const Color(
+                                                                                0xFF2a2a2a,
+                                                                              ),
+                                                                              width: 1,
+                                                                            ),
+                                                                          ),
+                                                                        );
+                                                                      }),
+                                                                      // Center label with thumbnail
+                                                                      Container(
+                                                                        width:
+                                                                            150,
+                                                                        height:
+                                                                            150,
+                                                                        decoration: BoxDecoration(
+                                                                          shape:
+                                                                              BoxShape.circle,
+                                                                          color:
+                                                                              Colors.white,
+                                                                          border: Border.all(
+                                                                            color: const Color(
+                                                                              0xFF4a4a4a,
+                                                                            ),
+                                                                            width:
+                                                                                3,
+                                                                          ),
+                                                                        ),
+                                                                        child: ClipOval(
+                                                                          child:
+                                                                              _audioService.currentSong?.thumbnailUrlGenerated.isNotEmpty ==
+                                                                                  true
+                                                                              ? Image.network(
+                                                                                  _audioService.currentSong!.thumbnailUrlGenerated,
+                                                                                  fit: BoxFit.cover,
+                                                                                  errorBuilder:
+                                                                                      (
+                                                                                        context,
+                                                                                        error,
+                                                                                        stackTrace,
+                                                                                      ) {
+                                                                                        return Container(
+                                                                                          color: Colors.grey[300],
+                                                                                          child: const Icon(
+                                                                                            Icons.music_note,
+                                                                                            size: 50,
+                                                                                            color: Colors.grey,
+                                                                                          ),
+                                                                                        );
+                                                                                      },
+                                                                                )
+                                                                              : Container(
+                                                                                  color: Colors.grey[300],
+                                                                                  child: const Icon(
+                                                                                    Icons.music_note,
+                                                                                    size: 50,
+                                                                                    color: Colors.grey,
+                                                                                  ),
+                                                                                ),
+                                                                        ),
+                                                                      ),
+                                                                      // Center hole
+                                                                      Container(
+                                                                        width:
+                                                                            25,
+                                                                        height:
+                                                                            25,
+                                                                        decoration: const BoxDecoration(
+                                                                          shape:
+                                                                              BoxShape.circle,
+                                                                          color: Color(
+                                                                            0xFF1a1a1a,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            },
+                                                          ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                            ],
-                                          ),
+                                            );
+                                          },
                                         );
                                       },
                                     );
                                   },
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 30),
-                            // Song Info
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                              ),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    _audioService.currentSong?.title ??
-                                        widget.song.title,
-                                    style: const TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                    textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 30),
+                                // Song Info
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
                                   ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Added by ${_audioService.currentSong?.userName ?? widget.song.userName}',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.grey,
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        _audioService.currentSong?.title ??
+                                            widget.song.title,
+                                        style: const TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Added by ${_audioService.currentSong?.userName ?? widget.song.userName}',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        // Time display (compact)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 8,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _formatDuration(_position),
+                                style: const TextStyle(
+                                  color: Colors.amber,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                _duration != null
+                                    ? _formatDuration(_duration!)
+                                    : '--:--',
+                                style: const TextStyle(
+                                  color: Colors.amber,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Playback Controls
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              // Previous
+                              IconButton(
+                                onPressed: widget.playlist != null
+                                    ? _audioService.previous
+                                    : null,
+                                icon: const Icon(Icons.skip_previous, size: 40),
+                                color: Colors.amber,
+                              ),
+
+                              // Volume Control
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.volume_down,
+                                    color: Colors.grey,
+                                  ),
+                                  SizedBox(
+                                    width: 100,
+                                    child: SliderTheme(
+                                      data: SliderTheme.of(context).copyWith(
+                                        activeTrackColor: Colors.amber,
+                                        inactiveTrackColor: Colors.grey[600],
+                                        thumbColor: Colors.amber,
+                                        overlayColor: Colors.amber.withOpacity(
+                                          0.2,
+                                        ),
+                                      ),
+                                      child: Slider(
+                                        value: _volume,
+                                        min: 0.0,
+                                        max: 1.0,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _volume = value;
+                                          });
+                                          _audioService.setVolume(value);
+                                        },
+                                      ),
                                     ),
+                                  ),
+                                  const Icon(
+                                    Icons.volume_up,
+                                    color: Colors.grey,
                                   ),
                                 ],
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
 
-                    // Time display (compact)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 8,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            _formatDuration(_position),
-                            style: const TextStyle(
-                              color: Colors.amber,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Text(
-                            _duration != null
-                                ? _formatDuration(_duration!)
-                                : '--:--',
-                            style: const TextStyle(
-                              color: Colors.amber,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Playback Controls
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          // Previous
-                          IconButton(
-                            onPressed: widget.playlist != null
-                                ? _audioService.previous
-                                : null,
-                            icon: const Icon(Icons.skip_previous, size: 40),
-                            color: Colors.amber,
-                          ),
-
-                          // Volume Control
-                          Row(
-                            children: [
-                              const Icon(Icons.volume_down, color: Colors.grey),
-                              SizedBox(
-                                width: 100,
-                                child: SliderTheme(
-                                  data: SliderTheme.of(context).copyWith(
-                                    activeTrackColor: Colors.amber,
-                                    inactiveTrackColor: Colors.grey[600],
-                                    thumbColor: Colors.amber,
-                                    overlayColor: Colors.amber.withOpacity(0.2),
-                                  ),
-                                  child: Slider(
-                                    value: _volume,
-                                    min: 0.0,
-                                    max: 1.0,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _volume = value;
-                                      });
-                                      _audioService.setVolume(value);
-                                    },
-                                  ),
-                                ),
+                              // Next
+                              IconButton(
+                                onPressed: widget.playlist != null
+                                    ? _audioService.next
+                                    : null,
+                                icon: const Icon(Icons.skip_next, size: 40),
+                                color: Colors.amber,
                               ),
-                              const Icon(Icons.volume_up, color: Colors.grey),
                             ],
                           ),
+                        ),
 
-                          // Next
-                          IconButton(
-                            onPressed: widget.playlist != null
-                                ? _audioService.next
-                                : null,
-                            icon: const Icon(Icons.skip_next, size: 40),
-                            color: Colors.amber,
+                        // Playlist Info (if available)
+                        if (widget.playlist != null) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Playlist: ${widget.playlist!.length} songs',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                Text(
+                                  '${_audioService.currentIndex + 1} of ${widget.playlist!.length}',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
-                      ),
+                      ],
                     ),
 
-                    // Playlist Info (if available)
-                    if (widget.playlist != null) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Playlist: ${widget.playlist!.length} songs',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            Text(
-                              '${_audioService.currentIndex + 1} of ${widget.playlist!.length}',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
+                    // Improved Needle Arm
+                    Positioned(
+                      left: _needlePivot.dx - 100,
+                      top: _needlePivot.dy - 100,
+                      width: 400,
+                      height: 400,
+                      child: GestureDetector(
+                        onPanUpdate: _onNeedlePan,
+                        onPanEnd: _onNeedlePanEnd,
+                        child: CustomPaint(
+                          painter: NeedlePainter(
+                            pivotPoint: const Offset(
+                              100,
+                              100,
+                            ), // Local coordinates within the 400x400 area
+                            angle: _needleAngle,
+                            length: _needleLength,
+                            isOnVinyl: _isNeedleOnVinyl(),
+                          ),
                         ),
                       ),
-                    ],
+                    ),
                   ],
                 ),
-
-                // Improved Needle Arm
-                Positioned(
-                  left: _needlePivot.dx - 100,
-                  top: _needlePivot.dy - 100,
-                  width: 400,
-                  height: 400,
-                  child: GestureDetector(
-                    onPanUpdate: _onNeedlePan,
-                    onPanEnd: _onNeedlePanEnd,
-                    child: CustomPaint(
-                      painter: NeedlePainter(
-                        pivotPoint: const Offset(
-                          100,
-                          100,
-                        ), // Local coordinates within the 400x400 area
-                        angle: _needleAngle,
-                        length: _needleLength,
-                        isOnVinyl: _isNeedleOnVinyl(),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+        );
+      },
     );
   }
 

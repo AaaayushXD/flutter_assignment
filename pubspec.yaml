@@ -48,6 +48,8 @@ dependencies:
   # HTTP and API
   http: ^1.2.2
   dio: ^5.7.0
+  path_provider: ^2.1.2
+  permission_handler: ^11.3.1
 
   # UI and Utils
   google_fonts: ^6.2.1

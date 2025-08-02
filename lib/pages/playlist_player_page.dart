@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/playlist_model.dart';
 import '../models/song_model.dart';
 import '../services/playlist_service.dart';
+import '../providers/theme_provider.dart';
 import '../widgets/playlist_vinyl_player.dart';
+import '../widgets/global_theme_switcher.dart';
 
 class PlaylistPlayerPage extends StatefulWidget {
   final Playlist playlist;
@@ -52,52 +55,84 @@ class _PlaylistPlayerPageState extends State<PlaylistPlayerPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text('Playlist: ${widget.playlist.name}'),
-          backgroundColor: const Color(0xFF16213E),
-          foregroundColor: Colors.white,
-        ),
-        backgroundColor: const Color(0xFF1A1A2E),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        final isDarkMode = themeProvider.isDarkMode;
 
-    if (_songs.isEmpty) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text('Playlist: ${widget.playlist.name}'),
-          backgroundColor: const Color(0xFF16213E),
-          foregroundColor: Colors.white,
-        ),
-        backgroundColor: const Color(0xFF1A1A2E),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.playlist_play, size: 80, color: Colors.grey[400]),
-              const SizedBox(height: 16),
-              Text(
-                'No songs in this playlist',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[300],
+        if (_isLoading) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text('Playlist: ${widget.playlist.name}'),
+              backgroundColor: isDarkMode
+                  ? const Color(0xFF16213E)
+                  : Colors.purple,
+              foregroundColor: Colors.white,
+              actions: [
+                GlobalThemeSwitcher(
+                  isDarkMode: isDarkMode,
+                  onThemeChanged: () {
+                    themeProvider.toggleTheme();
+                  },
+                  size: 32,
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Add songs to this playlist to start playing',
-                style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
+              ],
+            ),
+            backgroundColor: isDarkMode
+                ? const Color(0xFF1A1A2E)
+                : const Color(0xFFF5F5F5),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
 
-    return PlaylistVinylPlayer(playlist: widget.playlist, songs: _songs);
+        if (_songs.isEmpty) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text('Playlist: ${widget.playlist.name}'),
+              backgroundColor: isDarkMode
+                  ? const Color(0xFF16213E)
+                  : Colors.purple,
+              foregroundColor: Colors.white,
+              actions: [
+                GlobalThemeSwitcher(
+                  isDarkMode: isDarkMode,
+                  onThemeChanged: () {
+                    themeProvider.toggleTheme();
+                  },
+                  size: 32,
+                ),
+              ],
+            ),
+            backgroundColor: isDarkMode
+                ? const Color(0xFF1A1A2E)
+                : const Color(0xFFF5F5F5),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.playlist_play, size: 80, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No songs in this playlist',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[300],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Add songs to this playlist to start playing',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return PlaylistVinylPlayer(playlist: widget.playlist, songs: _songs);
+      },
+    );
   }
 }

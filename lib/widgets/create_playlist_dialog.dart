@@ -244,9 +244,7 @@ class _CreatePlaylistDialogState extends State<CreatePlaylistDialog> {
     try {
       // Use uploaded image URL or get random image if none selected
       String? finalImageUrl = _uploadedImageUrl;
-      if (finalImageUrl == null) {
-        finalImageUrl = _imageUploadService.getRandomPlaylistImage();
-      }
+      finalImageUrl ??= _imageUploadService.getRandomPlaylistImage();
 
       await _playlistService.createPlaylist(
         _playlistController.text.trim(),
