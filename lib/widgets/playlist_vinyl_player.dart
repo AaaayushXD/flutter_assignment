@@ -974,8 +974,8 @@ class _PlaylistVinylPlayerState extends State<PlaylistVinylPlayer>
                                     child: SliderTheme(
                                       data: SliderTheme.of(context).copyWith(
                                         activeTrackColor: Colors.amber,
-                                        inactiveTrackColor: isDarkMode
-                                            ? Colors.grey[600]
+                                        inactiveTrackColor: isDarkMode 
+                                            ? Colors.grey[600] 
                                             : Colors.grey[400],
                                         thumbColor: Colors.amber,
                                         overlayColor: Colors.amber.withOpacity(

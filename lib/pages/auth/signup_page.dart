@@ -45,6 +45,8 @@ class _SignupPageState extends State<SignupPage> with TickerProviderStateMixin {
             backgroundColor: Colors.green,
           ),
         );
+        // Navigate to main app after successful signup
+        Navigator.of(context).pushReplacementNamed('/main');
       } else if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -58,7 +60,10 @@ class _SignupPageState extends State<SignupPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
+      backgroundColor: const Color(0xFF667eea),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -97,20 +102,20 @@ class _SignupPageState extends State<SignupPage> with TickerProviderStateMixin {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        const Text(
+                        Text(
                           'Create Account',
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF2D3748),
+                            color: isDarkMode ? Colors.white : Colors.black,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
+                        Text(
                           'Join us and start your music journey',
                           style: TextStyle(
                             fontSize: 16,
-                            color: Color(0xFF718096),
+                            color: isDarkMode ? Colors.white : Colors.black,
                           ),
                         ),
                         const SizedBox(height: 32),
@@ -118,14 +123,37 @@ class _SignupPageState extends State<SignupPage> with TickerProviderStateMixin {
                         // Name Field
                         TextFormField(
                           controller: _nameController,
+                          style: TextStyle(color: Colors.black87, fontSize: 16),
                           decoration: InputDecoration(
                             labelText: 'Full Name',
-                            prefixIcon: const Icon(Icons.person_outlined),
+                            labelStyle: TextStyle(
+                              color: const Color(0xFF667eea),
+                            ),
+                            prefixIcon: Icon(
+                              Icons.person_outlined,
+                              color: const Color(0xFF667eea),
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: const Color(0xFF667eea),
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: const Color(0xFF667eea),
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: const Color(0xFF667eea),
+                                width: 2,
+                              ),
                             ),
                             filled: true,
-                            fillColor: Colors.grey[50],
+                            fillColor: Colors.grey[100],
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -143,14 +171,37 @@ class _SignupPageState extends State<SignupPage> with TickerProviderStateMixin {
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
+                          style: TextStyle(color: Colors.black87, fontSize: 16),
                           decoration: InputDecoration(
                             labelText: 'Email',
-                            prefixIcon: const Icon(Icons.email_outlined),
+                            labelStyle: TextStyle(
+                              color: const Color(0xFF667eea),
+                            ),
+                            prefixIcon: Icon(
+                              Icons.email_outlined,
+                              color: const Color(0xFF667eea),
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: const Color(0xFF667eea),
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: const Color(0xFF667eea),
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: const Color(0xFF667eea),
+                                width: 2,
+                              ),
                             ),
                             filled: true,
-                            fillColor: Colors.grey[50],
+                            fillColor: Colors.grey[100],
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -170,14 +221,22 @@ class _SignupPageState extends State<SignupPage> with TickerProviderStateMixin {
                         TextFormField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
+                          style: TextStyle(color: Colors.black87, fontSize: 16),
                           decoration: InputDecoration(
                             labelText: 'Password',
-                            prefixIcon: const Icon(Icons.lock_outlined),
+                            labelStyle: TextStyle(
+                              color: const Color(0xFF667eea),
+                            ),
+                            prefixIcon: Icon(
+                              Icons.lock_outlined,
+                              color: const Color(0xFF667eea),
+                            ),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword
                                     ? Icons.visibility_off
                                     : Icons.visibility,
+                                color: const Color(0xFF667eea),
                               ),
                               onPressed: () {
                                 setState(() {
@@ -187,9 +246,25 @@ class _SignupPageState extends State<SignupPage> with TickerProviderStateMixin {
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: const Color(0xFF667eea),
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: const Color(0xFF667eea),
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: const Color(0xFF667eea),
+                                width: 2,
+                              ),
                             ),
                             filled: true,
-                            fillColor: Colors.grey[50],
+                            fillColor: Colors.grey[100],
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -207,14 +282,22 @@ class _SignupPageState extends State<SignupPage> with TickerProviderStateMixin {
                         TextFormField(
                           controller: _confirmPasswordController,
                           obscureText: _obscureConfirmPassword,
+                          style: TextStyle(color: Colors.black87, fontSize: 16),
                           decoration: InputDecoration(
                             labelText: 'Confirm Password',
-                            prefixIcon: const Icon(Icons.lock_outlined),
+                            labelStyle: TextStyle(
+                              color: const Color(0xFF667eea),
+                            ),
+                            prefixIcon: Icon(
+                              Icons.lock_outlined,
+                              color: const Color(0xFF667eea),
+                            ),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscureConfirmPassword
                                     ? Icons.visibility_off
                                     : Icons.visibility,
+                                color: const Color(0xFF667eea),
                               ),
                               onPressed: () {
                                 setState(() {
@@ -225,9 +308,25 @@ class _SignupPageState extends State<SignupPage> with TickerProviderStateMixin {
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: const Color(0xFF667eea),
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: const Color(0xFF667eea),
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: const Color(0xFF667eea),
+                                width: 2,
+                              ),
                             ),
                             filled: true,
-                            fillColor: Colors.grey[50],
+                            fillColor: Colors.grey[100],
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -312,15 +411,17 @@ class _SignupPageState extends State<SignupPage> with TickerProviderStateMixin {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text(
+                            Text(
                               'Already have an account? ',
-                              style: TextStyle(color: Color(0xFF718096)),
+                              style: TextStyle(
+                                color: isDarkMode ? Colors.white : Colors.black,
+                              ),
                             ),
                             TextButton(
                               onPressed: () {
                                 Navigator.pop(context);
                               },
-                              child: const Text(
+                              child: Text(
                                 'Sign In',
                                 style: TextStyle(
                                   color: Color(0xFF667eea),

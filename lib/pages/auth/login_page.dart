@@ -38,6 +38,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             backgroundColor: Colors.green,
           ),
         );
+        // Navigate to main app after successful login
+        Navigator.of(context).pushReplacementNamed('/main');
       } else if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -51,7 +53,10 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
+      backgroundColor: const Color(0xFF667eea),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -90,20 +95,20 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        const Text(
+                        Text(
                           'Welcome Back',
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF2D3748),
+                            color: isDarkMode ? Colors.white : Colors.black,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
+                        Text(
                           'Sign in to continue to your music',
                           style: TextStyle(
                             fontSize: 16,
-                            color: Color(0xFF718096),
+                            color: isDarkMode ? Colors.white : Colors.black,
                           ),
                         ),
                         const SizedBox(height: 32),
@@ -112,14 +117,37 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
+                          style: TextStyle(color: Colors.black87, fontSize: 16),
                           decoration: InputDecoration(
                             labelText: 'Email',
-                            prefixIcon: const Icon(Icons.email_outlined),
+                            labelStyle: TextStyle(
+                              color: const Color(0xFF667eea),
+                            ),
+                            prefixIcon: Icon(
+                              Icons.email_outlined,
+                              color: const Color(0xFF667eea),
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: const Color(0xFF667eea),
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: const Color(0xFF667eea),
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: const Color(0xFF667eea),
+                                width: 2,
+                              ),
                             ),
                             filled: true,
-                            fillColor: Colors.grey[50],
+                            fillColor: Colors.grey[100],
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -139,14 +167,22 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                         TextFormField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
+                          style: TextStyle(color: Colors.black87, fontSize: 16),
                           decoration: InputDecoration(
                             labelText: 'Password',
-                            prefixIcon: const Icon(Icons.lock_outlined),
+                            labelStyle: TextStyle(
+                              color: const Color(0xFF667eea),
+                            ),
+                            prefixIcon: Icon(
+                              Icons.lock_outlined,
+                              color: const Color(0xFF667eea),
+                            ),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword
                                     ? Icons.visibility_off
                                     : Icons.visibility,
+                                color: const Color(0xFF667eea),
                               ),
                               onPressed: () {
                                 setState(() {
@@ -156,9 +192,25 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: const Color(0xFF667eea),
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: const Color(0xFF667eea),
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: const Color(0xFF667eea),
+                                width: 2,
+                              ),
                             ),
                             filled: true,
-                            fillColor: Colors.grey[50],
+                            fillColor: Colors.grey[100],
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -170,29 +222,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 8),
-
-                        // Forgot Password
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed: () {
-                              // TODO: Implement forgot password
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Forgot password feature coming soon!',
-                                  ),
-                                ),
-                              );
-                            },
-                            child: const Text(
-                              'Forgot Password?',
-                              style: TextStyle(color: Color(0xFF667eea)),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 16),
 
                         // Sign In Button
                         Consumer<AuthProvider>(

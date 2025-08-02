@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'config/firebase_config.dart';
 import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
+import 'pages/splash_screen.dart';
 import 'pages/main_navigation_page.dart';
 
 void main() async {
@@ -33,7 +34,7 @@ class MyApp extends StatelessWidget {
             themeMode: themeProvider.isDarkMode
                 ? ThemeMode.dark
                 : ThemeMode.light,
-            home: const MainNavigationPage(),
+            home: const SplashScreen(),
             debugShowCheckedModeBanner: false,
             routes: {'/main': (context) => const MainNavigationPage()},
           );
