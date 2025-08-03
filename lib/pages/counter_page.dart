@@ -251,7 +251,10 @@ class _CounterViewState extends State<CounterView>
           // Counter display
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 25),
+            padding: EdgeInsets.symmetric(
+              horizontal: _getResponsivePadding(state.count),
+              vertical: 25,
+            ),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isDarkMode
@@ -281,7 +284,7 @@ class _CounterViewState extends State<CounterView>
                   '${state.count}',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 90,
+                    fontSize: _getResponsiveFontSize(state.count),
                     fontWeight: FontWeight.bold,
                     fontFamily: 'monospace',
                     color: isDarkMode ? Colors.white : Colors.black87,
@@ -375,6 +378,40 @@ class _CounterViewState extends State<CounterView>
       return 'Positive';
     } else {
       return 'Negative';
+    }
+  }
+
+  double _getResponsiveFontSize(int count) {
+    final digitCount = count.abs().toString().length;
+
+    // Adjust font size based on number of digits
+    if (digitCount <= 3) {
+      return 90.0;
+    } else if (digitCount == 4) {
+      return 70.0;
+    } else if (digitCount == 5) {
+      return 55.0;
+    } else if (digitCount == 6) {
+      return 45.0;
+    } else {
+      return 35.0; // For 7+ digits
+    }
+  }
+
+  double _getResponsivePadding(int count) {
+    final digitCount = count.abs().toString().length;
+
+    // Adjust padding based on number of digits
+    if (digitCount <= 3) {
+      return 40.0;
+    } else if (digitCount == 4) {
+      return 30.0;
+    } else if (digitCount == 5) {
+      return 20.0;
+    } else if (digitCount == 6) {
+      return 15.0;
+    } else {
+      return 10.0; // For 7+ digits
     }
   }
 

@@ -85,6 +85,43 @@ class _SplashScreenState extends State<SplashScreen>
     _navigateToNextScreen();
   }
 
+  void _navigateToNextScreen() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    // Wait for auth state to be determined
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAuthAndNavigate(authProvider);
+    });
+  }
+
+  void _checkAuthAndNavigate(AuthProvider authProvider) {
+    if (authProvider.isInitialized) {
+      _performNavigation(authProvider);
+    } else {
+      // Wait for auth to be initialized
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _checkAuthAndNavigate(authProvider);
+      });
+    }
+  }
+
+  void _performNavigation(AuthProvider authProvider) {
+    if (authProvider.isAuthenticated) {
+      Navigator.of(context).pushReplacementNamed('/main');
+    } else {
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const LoginPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 800),
+        ),
+      );
+    }
+  }
+
   Widget _buildVinylRecordIcon() {
     return SizedBox(
       width: 80,
@@ -187,25 +224,6 @@ class _SplashScreenState extends State<SplashScreen>
         ],
       ),
     );
-  }
-
-  void _navigateToNextScreen() {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-    if (authProvider.isAuthenticated) {
-      Navigator.of(context).pushReplacementNamed('/main');
-    } else {
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              const LoginPage(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-          transitionDuration: const Duration(milliseconds: 800),
-        ),
-      );
-    }
   }
 
   @override
